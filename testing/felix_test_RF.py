@@ -21,8 +21,8 @@ testf.gen_full()
 
 chipsize = 10e3
 chip = Base_Chip(name,chipsize,chipsize)
-chip.add_component(testf.cell,(0,0))
-chip.add_ebpg_marker((1690,6560))
+chip.add_component(testf.cell,(-5e3,-5e3))
+chip.add_ebpg_marker((-3310,-1560))
 #chip.add_dicing_marker(pos=(5000,5000))
 #chip.add_TUlogo()
 chip.save_to_gds(show = True, save = True)

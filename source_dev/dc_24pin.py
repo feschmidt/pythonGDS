@@ -5,7 +5,9 @@ import gdsCAD as cad
 # Maybe move bond testpads from basechip class to here?
 
 def gen_full_array(padgroup):
-
+    '''
+    Multiply padgroup cell for ALD JJs and SQUIDs and arrange them along the four sides of a 6x6mm2 chip
+    '''
     # Merge objects into cells
     bottom = [cad.core.Cell('BOTTOM LAYER')] * 4
     bottom[0].add(padgroup[0]) 

@@ -2,7 +2,10 @@ import numpy as np
 import gdsCAD as cad
 
 class ShuntCavity():
-
+    '''
+    Class for RF cavities with one or two shunt capacitors at either, and one hole at the far, end.
+    Note: The design is currently centered around (5000,5000) and not the (0,0) origin of the Base_Chip class!
+    '''
     def __init__(self, name, dict_cavity):
 
         self.name = name
@@ -42,6 +45,11 @@ class ShuntCavity():
     # gen_full with two gen_cavity, each with own centerwidth
     # afterwards add elements in gen_full
     def gen_full(self):
+        '''
+        First creates the center conductor with gapwidth = 0
+        Second creates the space around the conductor, finite gapwidth
+        Add everything together. Finally, in LayoutBeamer do P-XOR
+        '''
 
         cavity_nogap = self.gen_cavities(gapwidth=0)
         cavity_gap = self.gen_cavities(gapwidth=self.gapwidth)
@@ -51,6 +59,9 @@ class ShuntCavity():
                 self.cell.add(cavity[i])
 
     def gen_cavities(self,gapwidth=0):
+        '''
+        Create the individual cavity. Gapwidth = 0: center conductor. Finite gapwidth: Gaps around
+        '''
 
         length = self.length
         centerwidth = self.centerwidth + 2*gapwidth
@@ -66,7 +77,7 @@ class ShuntCavity():
         llstart = self.llstart          
         llend = self.llend
         if gapwidth!=0:
-            x1_launcher = -500
+            x1_launcher = 0#-500
             y1_launcher = 230
         else:
             x1_launcher = 700
@@ -101,7 +112,8 @@ class ShuntCavity():
         endx0 = stopx0+r0*8
         endx = length - (A - endx0) - gapwidth
         # without any curves: cav_straight = endx - startx0
-
+        
+        # Do the wiggles
         curve1 = cad.shapes.Disk((stopx0,top_cv),radius,inner_radius=inner_radius,initial_angle=90,
             final_angle=0)
         curve1_lead = cad.core.Path([(stopx0+r0, top_cv),(stopx0+r0,bot_cv)],centerwidth)
@@ -118,7 +130,7 @@ class ShuntCavity():
             final_angle=90)
         final_lead = cad.core.Path([(endx0,center),(endx,center)],centerwidth)
 
-        
+        # Create hole at the end
         holex0 = endx
         holedim = self.holedim
         holemarker = self.holemarker
@@ -149,10 +161,10 @@ class ShuntCavity():
             self.endshunt = endhole
         
         # Create second launcher
-        launcher2 = cad.utils.reflect(launcher,'y',origin=(5000,5000))
+        launcher2 = cad.utils.reflect(launcher,'y',origin=(5e3,5e3))
         holex0 = endx
         holedim = self.holedim
-        launcher2 = cad.utils.translate(launcher2,(self.endshunt-(10000-llstart),0))   
+        launcher2 = cad.utils.translate(launcher2,(self.endshunt-(10e3-llstart),0))   
         # For future: fix second shunt. For length adjustments make meandering longer or shorter,
         # and center it. For now this is sufficient.
         
@@ -203,14 +215,14 @@ class ShuntCavity():
         
         
         # Create second cavity as mirrored version of first one
-        cavity2 = [cad.utils.reflect(cavity1[i],'x',origin=(5000,5000)) for i in range(len(cavity1))]
+        cavity2 = [cad.utils.reflect(cavity1[i],'x',origin=(5e3,5e3)) for i in range(len(cavity1))]
         
         return (cavity1, cavity2)
         
 
     def gen_shunt(self,leadin,leadout,gap=0):
-
         '''
+        Create shunt capacitors
         leadin: tuple (x-coordinate, lendth)
         leadout: int length
         gap: gapwidth between center conductor and ground
